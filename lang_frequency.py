@@ -1,16 +1,11 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
-import argparse
-import operator
-import os
-import re
 import sys
+import os
+import argparse
+import re
 
-
-SCRIPT_NAME = 'devmanorg frequent words'
-
-reload(sys)
-sys.setdefaultencoding("utf-8")
+from collections import Counter
 
 
 def load_data(filepath):
@@ -18,35 +13,56 @@ def load_data(filepath):
         return None
 
     with open(filepath) as input_file:
-        return input_file.read().decode('utf8')
+        return input_file.read()
 
 
-def get_most_frequent_words(text):
-    words = re.findall(r'(\w+)', text, re.UNICODE)
-    words_stat = dict()
+def get_most_frequent_words(text, min_length=None):
+    words = re.findall(r"(\w+)", text, re.UNICODE)
 
-    for word in words:
-        if not word.isdigit():
-            word = word.lower()
-            words_stat[word] = words_stat.get(word, 0) + 1
+    words = map(lambda word: word.lower(), words)
 
-    words_stat = sorted(
-        words_stat.iteritems(),
-        key=operator.itemgetter(1),
-        reverse=True
+    if min_length is not None:
+        words = filter(lambda word: len(word) >= min_length, words)
+
+    return Counter(words)
+
+
+def main():
+    description = "Get most frequent words from FILENAME"
+    parser = argparse.ArgumentParser(description=description)
+
+    parser.add_argument(
+        "-f", "--filepath",
+        required=True,
+        help="File path")
+    parser.add_argument(
+        "-n",
+        help="Number of words to print. Default: 10",
+        default=10,
+        type=int
+    )
+    parser.add_argument(
+        "-m", "--min-length",
+        type=int,
+        help="Minimum word length for evaluation. Default: None"
     )
 
-    return [w for w, _ in words_stat]
-
-
-parser = argparse.ArgumentParser(description=SCRIPT_NAME)
-parser.add_argument('filename', help='Input file')
-
-
-if __name__ == '__main__':
     args = parser.parse_args()
 
-    text = load_data(args.filename)
-    most_frequent_words = get_most_frequent_words(text)
+    text = load_data(args.filepath)
+    most_frequent_words = get_most_frequent_words(text, args.min_length)
 
-    print ("\n".join(most_frequent_words[:10]))
+    print_format ="{0:<6}{1:<25}{2}"
+
+    print(print_format.format("#", "Word", "Freq"))
+
+    for item in enumerate(most_frequent_words.most_common(args.n)):
+        print(print_format.format(
+            item[0] + 1,
+            item[1][0].ljust(25, "."),
+            item[1][1])
+        )
+
+
+if __name__ == "__main__":
+    main()
