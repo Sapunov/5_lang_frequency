@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 import os
 import argparse
 import re
@@ -46,22 +45,36 @@ def main():
         type=int,
         help="Minimum word length for evaluation. Default: None"
     )
+    parser.add_argument(
+        "-t", "--tab",
+        action="store_true",
+        help="TabSeparated format")
 
     args = parser.parse_args()
 
     text = load_data(args.filepath)
     most_frequent_words = get_most_frequent_words(text, args.min_length)
 
-    print_format ="{0:<6}{1:<25}{2}"
+    print_format = "{0:<6}{1:<25}{2}"
 
-    print(print_format.format("#", "Word", "Freq"))
+    amount = args.n or None
 
-    for item in enumerate(most_frequent_words.most_common(args.n)):
-        print(print_format.format(
-            item[0] + 1,
-            item[1][0].ljust(25, "."),
-            item[1][1])
-        )
+    if (args.tab):
+        for item in enumerate(most_frequent_words.most_common(amount)):
+            print("{0}\t{1}\t{2}".format(
+                item[0] + 1,
+                item[1][0],
+                item[1][1])
+            )
+    else:
+        print(print_format.format("#", "Word", "Freq"))
+
+        for item in enumerate(most_frequent_words.most_common(amount)):
+            print(print_format.format(
+                item[0] + 1,
+                item[1][0].ljust(25, "."),
+                item[1][1])
+            )
 
 
 if __name__ == "__main__":
