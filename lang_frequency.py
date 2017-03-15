@@ -16,9 +16,20 @@ def load_data(filepath):
         return input_file.read()
 
 
-def extract_words(text, to_lowercase=False, min_length=None):
+is_ascii = lambda string: len(string) == len(string.encode())
+
+
+def extract_words(text, to_lowercase=False, min_length=None,
+    ascii_only=False, symbols_only=False
+):
 
     words = re.findall(r"(\w+)", text, re.UNICODE)
+
+    if ascii_only:
+        words = [word for word in words if is_ascii(word)]
+
+    if symbols_only:
+        words = [word for word in words if not word.isdigit()]
 
     if to_lowercase:
         words = [word.lower() for word in words]
@@ -74,11 +85,27 @@ def main():
         action="store_true",
         help="Case insensitive"
     )
+    parser.add_argument(
+        "-a", "--ascii",
+        action="store_true",
+        help="Work with ascii symbols only"
+    )
+    parser.add_argument(
+        "-s", "--symbols",
+        action="store_true",
+        help="Work with only sumbols i.e. not numbers"
+    )
 
     args = parser.parse_args()
 
     text = load_data(args.filepath)
-    words = extract_words(text, args.ignore_case, args.min_length)
+    words = extract_words(
+        text,
+        args.ignore_case,
+        args.min_length,
+        args.ascii,
+        args.symbols
+    )
 
     if args.count:
         print(len(list(words)))
