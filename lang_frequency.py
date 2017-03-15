@@ -8,6 +8,7 @@ from collections import Counter
 
 
 def load_data(filepath):
+
     if not os.path.exists(filepath):
         return None
 
@@ -16,22 +17,25 @@ def load_data(filepath):
 
 
 def extract_words(text, to_lowercase=False, min_length=None):
+
     words = re.findall(r"(\w+)", text, re.UNICODE)
 
     if to_lowercase:
-        words = map(lambda word: word.lower(), words)
+        words = [word.lower() for word in words]
 
     if min_length:
-        words = filter(lambda word: len(word) >= min_length, words)
+        words = [word for word in words if len(word) >= min_length]
 
     return words
 
 
 def get_most_frequent_words(words):
+
     return Counter(words)
 
 
 def main():
+
     description = "Get most frequent words from FILENAME"
     parser = argparse.ArgumentParser(description=description)
 
@@ -61,6 +65,11 @@ def main():
         help="Show only number of words in text"
     )
     parser.add_argument(
+        "-cu", "--count_unique",
+        action="store_true",
+        help="Show only number of unique words in text"
+    )
+    parser.add_argument(
         "-i", "--ignore-case",
         action="store_true",
         help="Case insensitive"
@@ -72,10 +81,13 @@ def main():
     words = extract_words(text, args.ignore_case, args.min_length)
 
     if args.count:
-        print(
-            len(list(words)))
+        print(len(list(words)))
     else:
         most_frequent_words = get_most_frequent_words(words)
+
+        if args.count_unique:
+            return print(len(most_frequent_words))
+
         amount = args.n or None
 
         if args.tab:
